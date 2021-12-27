@@ -1,9 +1,12 @@
 import discord
 import requests
 from bs4 import BeautifulSoup
-
-
+from datetime import datetime
+reaction = 0
+date_time = datetime.now()
 embed_search = discord.Embed
+
+
 async def create_embed(link, a, message):
     embed_search = discord.Embed(
         title = "Searching for: " + a,
@@ -19,7 +22,6 @@ async def create_embed(link, a, message):
     scrape(link, embed_search)
     await message.channel.send(embed=embed_search)
     
-
 
 def scrape(link, embed_search):
     URL = link #the URL to request
@@ -57,10 +59,18 @@ async def on_ready():
 @client.event
 async def on_message(message):
     if message.author == client.user:
-        return
+        await message.add_reaction("◀️") #adding reaction the message so the embed can be changed
+        await message.add_reaction("▶️") #adding reaction the message so the embed can be changed
     if message.content.startswith('&help'):
         await message.channel.send('&find <light novel name>')
     if message.content.startswith('&find'):
+        global reaction
+        reaction = 0
+        await search(message)
+
+
+async def search(message):
+    try:
         a = message.content #get the message
         link_text = a #for manipulation
         link_text = link_text[6:] #deleting &find 
@@ -70,9 +80,31 @@ async def on_message(message):
         page = "1/?s="
         link = link + page + link_text #make the integral link starting at page 1
         await create_embed(link, a, message) #awaitable coroutine so it works dont ask me why it needs to be like this
-        await message.add_reaction("◀️") #adding reaction the message so the embed can be changed
-        await message.add_reaction("▶️") #adding reaction the message so the embed can be changed
+    except AttributeError:
+            await message.channel.send("Nothing found...")
 
+
+@client.event
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
+    global reaction
+    reaction += 1 #count the number of reactions
+    message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
+    if reaction >=3: #if the number of reactions is above 2 change the embed
+        message_time = int(round(message.created_at.timestamp()))
+        request_time = int(datetime.now().timestamp())
+        if (message_time + 7500 > request_time):
+            print("on time")
+            print(str(payload.emoji))
+            if (str(payload.emoji) == '◀️' ):
+                print("left")
+            elif (str(payload.emoji) == '▶️' ):
+                print("right")
+        else:
+            print("too late")
+
+
+#◀️
+#▶️
 
 
 client.run('OTI0Mzg2ODAxNzMxMzcxMDM4.Ycd0Sw.6g-dAdj_ug1Drv4QAUDpe3Rw6ek')
