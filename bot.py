@@ -193,6 +193,3 @@ async def edit_right(message):
 
 #◀️
 #▶️
-
-
-client.run('OTI0Mzg2ODAxNzMxMzcxMDM4.Ycd0Sw.6g-dAdj_ug1Drv4QAUDpe3Rw6ek')
